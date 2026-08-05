@@ -78,15 +78,51 @@ class WeatherApp(QWidget):
         city=self.city_input.text()
         url=f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
 
-        response=requests.get(url)
-        data=response.json()
-        print(data)
+        try: 
+            response=requests.get(url)
+            response.raise_for_status()
+            data=response.json()
+        
+            if data['cod']==200:
+                self.display_weather(data)
+
+        except requests.exceptions.HTTPError as http_error:
+            match response.status_code:
+                case 400:
+                    self.display_error("Bad request\nPlease check your input")
+                case 401:
+                    self.display_error("Unauthorized\nInvalid API key")
+                case 403:
+                    self.display_error("FOrbidden\naccess denied")
+                case 404:
+                    self.display_error("Not found\nCity not found")
+                case 500:
+                    self.display_error("Internal server error\nPlease try again later")
+                case 502:
+                    self.display_error("Bad gateway\nInvalid response from server")
+                case 503:
+                    self.display_error("Service unavailable\nServer is down")
+                case 504:
+                    self.display_error("Gateway timeout\nNO response from server")
+                case _:
+                    self.display_error(f"HTTP error occured\n{http_error}")
+
+        except requests.exceptions.ConnectionError:
+            self.display_error("Connection Error:\nCheck your internet connection")
+        except requests.exceptions.Timeout:
+            self.display_error("Timeout error:\nThe request timed out")
+        except requests.exceptions.TooManyRedirects:
+            self.display_error("Too many redirects:\nCheck the url")
+        except requests.exceptions.RequestException as req_error:
+            self.display_error(f"Request error:\n{req_error}")
+
 
     def display_error(self,message):
-        pass        
+        self.temperature_label.setStyleSheet("font-size:30px")
+        self.temperature_label.setText(message)
 
     def display_weather(self,data):
-        pass
+        print(data)
 
 
 if __name__=='__main__':
