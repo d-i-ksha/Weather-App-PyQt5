@@ -4,6 +4,10 @@ from PyQt5.QtWidgets import (QApplication,
 QWidget,QLabel, QLineEdit, QPushButton,
 QVBoxLayout)
 from PyQt5.QtCore import Qt
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 class WeatherApp(QWidget):
     def __init__(self):
@@ -36,7 +40,7 @@ class WeatherApp(QWidget):
         self.description_label.setAlignment(Qt.AlignCenter)
 
         self.city_label.setObjectName("city_label")
-        self.city_label.setObjectName("city_input")
+        self.city_input.setObjectName("city_input")
         self.get_weather_button.setObjectName("get_weather_button")
         self.temperature_label.setObjectName("temperature_label")
         self.emoji_label.setObjectName("emoji_label")
@@ -74,7 +78,11 @@ class WeatherApp(QWidget):
         self.get_weather_button.clicked.connect(self.get_weather)
 
     def get_weather(self):
-        api_key="69c60c21321c86b5a77a12e145b32b5a"
+        api_key=os.getenv("OPENWEATHER_API_KEY")
+        if not api_key:
+            self.display_error("API key not found\ncheck your .env file")
+            return
+        
         city=self.city_input.text()
         url=f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
 
